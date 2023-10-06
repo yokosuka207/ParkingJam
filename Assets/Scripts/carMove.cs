@@ -4,25 +4,37 @@ using UnityEngine;
 
 public class carMove : MonoBehaviour
 {
-    public float moveSpeed = 5.0f; // 移動速度
-    private float moveDirection;
-    private Vector2 touchStartPos; // タッチの開始位置
-    private Vector2 touchEndPos;   // タッチの終了位置
-    private bool isMoving = false; // オブジェクトが移動中かどうか
+    public float moveSpeed = 5.0f;
+    private Vector2 touchStartPos;
+    private Vector2 swipeDirection;
+    private Vector3 moveDirection;
+    private bool isMoving = false;
+    private bool isVec = false;
+
+    public float bounceForce = 10f; // バウンドする力
+    private Rigidbody rb;
+
+    private void Start()
+    {
+        rb = GetComponent<Rigidbody>();
+    }
 
     void Update()
     {
-        // プラットフォームによってタッチまたはマウスの入力を取得
+        // タッチまたはマウスのクリックを検出
         if (Input.GetMouseButtonDown(0))
         {
+            // レイキャストを使用してタップした位置にオブジェクトがあるかをチェック
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             RaycastHit hit;
 
             if (Physics.Raycast(ray, out hit))
             {
-                if (hit.collider.CompareTag("Car")) // "Car" タグをキャラクターに設定していると仮定
+                // レイキャストでヒットしたオブジェクトがこのスクリプトがアタッチされたオブジェクトと同じであれば動かす
+                if (hit.collider.gameObject == gameObject)
                 {
-                    HandleSwipe();
+                    isMoving = true;
+                    isVec = true;
                 }
             }
 
@@ -31,27 +43,40 @@ public class carMove : MonoBehaviour
 
         if (Input.GetMouseButtonUp(0))
         {
-            touchEndPos = Input.mousePosition;
+            swipeDirection = (Vector2)Input.mousePosition - touchStartPos;
+
+            if (isVec)
+            {
+                isVec = false;
+
+                // 前方向取得
+                if (swipeDirection.y > 0)
+                    moveDirection = Vector3.forward;
+                // 後方向取得
+                else if (swipeDirection.y < 0)
+                    moveDirection = Vector3.back;
+            }
         }
 
-        // オブジェクトが移動中であれば、前後に移動
+        // オブジェクトが移動中の場合、前後に移動
         if (isMoving)
         {
-            transform.Translate(Vector3.forward * moveDirection * moveSpeed * Time.deltaTime);
+            transform.Translate(moveDirection * moveSpeed * Time.deltaTime);
         }
     }
 
-    void HandleSwipe()
+    void OnCollisionEnter(Collision collision)
     {
-        // スワイプの方向を計算
-        Vector2 swipeDirection = touchEndPos - touchStartPos;
-
-        // スワイプの距離が一定以上かつオブジェクトが移動中でない場合、オブジェクトを移動させる
-        if (swipeDirection.magnitude > 50f && !isMoving)
+        if (collision.transform.CompareTag("Car") && isMoving)
         {
-            // 縦方向のスワイプの場合、前後に移動させる
-            moveDirection = Mathf.Sign(swipeDirection.y);
-            isMoving = true;
+            // 衝突した法線ベクトルを取得して、バウンド方向を計算
+            Vector3 bounceDirection = collision.contacts[0].normal;
+            // バウンド力を適用
+            rb.AddForce(bounceDirection * bounceForce, ForceMode.Impulse);
+            // 方向リセット
+            moveDirection = Vector3.zero;
+
+            isMoving = false;
         }
     }
 }
