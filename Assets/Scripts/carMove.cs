@@ -6,7 +6,7 @@ public class carMove : MonoBehaviour
 {
     public float moveSpeed = 5.0f;
     private Vector2 touchStartPos;
-    private Vector2 swipeDirection;
+    private Vector3 swipeDirection;
     private Vector3 moveDirection;
     private bool isMoving = false;
     private bool isVec = false;
@@ -43,25 +43,37 @@ public class carMove : MonoBehaviour
 
         if (Input.GetMouseButtonUp(0))
         {
-            swipeDirection = (Vector2)Input.mousePosition - touchStartPos;
+            Vector2 swipeVector = (Vector2)Input.mousePosition - touchStartPos;
 
             if (isVec)
             {
                 isVec = false;
 
-                // 前方向取得
-                if (swipeDirection.y > 0)
-                    moveDirection = Vector3.forward;
-                // 後方向取得
-                else if (swipeDirection.y < 0)
-                    moveDirection = Vector3.back;
+                swipeDirection = transform.InverseTransformDirection(new Vector3(swipeVector.x, 0, swipeVector.y)).normalized;
+
+                // forward と back の方向に制限
+                float dotForward = Vector3.Dot(swipeDirection, Vector3.forward);
+                float dotBack = Vector3.Dot(swipeDirection, Vector3.back);
+
+                Vector3 localForward = transform.forward;
+                Vector3 localBack = -localForward;
+
+                if (dotForward > dotBack)
+                {
+                    moveDirection = localForward;
+                }
+                else
+                {
+                    moveDirection = localBack;
+                }
+
             }
         }
 
         // オブジェクトが移動中の場合、前後に移動
         if (isMoving)
         {
-            transform.Translate(moveDirection * moveSpeed * Time.deltaTime);
+            transform.Translate(moveDirection * moveSpeed * Time.deltaTime, Space.World);
         }
     }
 
@@ -78,5 +90,11 @@ public class carMove : MonoBehaviour
 
             isMoving = false;
         }
+    }
+
+    public void SetMoveFlag(bool isMove)
+    {
+        isMoving = isMove;
+        Debug.Log(isMoving);
     }
 }
