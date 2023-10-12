@@ -14,9 +14,24 @@ public class carMove : MonoBehaviour
     public float bounceForce = 10f; // バウンドする力
     private Rigidbody rb;
 
+    private exitMove exit;
+
+    public float rotationAngle = 30.0f; // 回転角度
+    public float rotationSpeed = 60.0f; // 回転速度（度/秒）
+    public string triggerTag = "特定のオブジェクトのタグ";
+
+    private Quaternion originalRotation;
+    private bool isRotating = true;
+    bool isReturning = false;
+    private float rotationTimer = 0.0f;
+
     private void Start()
     {
         rb = GetComponent<Rigidbody>();
+        exit = GetComponent<exitMove>();
+
+        // オブジェクトの初期回転を保存
+        originalRotation = transform.rotation;
     }
 
     void Update()
@@ -71,15 +86,55 @@ public class carMove : MonoBehaviour
         }
 
         // オブジェクトが移動中の場合、前後に移動
-        if (isMoving)
+        if (isMoving && !exit.GetMove())
         {
             transform.Translate(moveDirection * moveSpeed * Time.deltaTime, Space.World);
+        }
+
+
+        if (isRotating)
+        {
+            if (rotationTimer < Mathf.Abs(rotationAngle) / rotationSpeed)
+            {
+                // 回転中の処理
+                float rotationDirection = Mathf.Sign(rotationAngle);
+                float rotationAmount = rotationDirection * rotationSpeed * Time.deltaTime;
+                transform.Rotate(Vector3.up, rotationAmount);
+                rotationTimer += Time.deltaTime;
+            }
+            else
+            {
+                // 回転が終了したら元の角度に戻す
+                transform.rotation = originalRotation;
+                isRotating = false;
+                isReturning = true;
+                rotationTimer = 0.0f;
+            }
+        }
+        else if (isReturning)
+        {
+            if (rotationTimer < Mathf.Abs(rotationAngle) / rotationSpeed)
+            {
+                // 元の角度に戻る中の処理
+                float rotationDirection = -Mathf.Sign(rotationAngle);
+                float rotationAmount = rotationDirection * rotationSpeed * Time.deltaTime;
+                transform.Rotate(Vector3.up, rotationAmount);
+                rotationTimer += Time.deltaTime;
+            }
+            else
+            {
+                // 再度回転を開始
+                //isRotating = true;
+                isReturning = false;
+                rotationTimer = 0.0f;
+            }
         }
     }
 
     void OnCollisionEnter(Collision collision)
     {
-        if (collision.transform.CompareTag("Car") && isMoving)
+        if (collision.transform.CompareTag("Car") || collision.transform.CompareTag("Wall")
+            && isMoving && !exit.GetMove())
         {
             // 衝突した法線ベクトルを取得して、バウンド方向を計算
             Vector3 bounceDirection = collision.contacts[0].normal;
@@ -90,11 +145,23 @@ public class carMove : MonoBehaviour
 
             isMoving = false;
         }
+
+        if (collision.transform.CompareTag("Car") || collision.transform.CompareTag("Wall")
+            && !isMoving && !exit.GetMove())
+        {
+            
+
+            isMoving = false;
+        }
     }
 
     public void SetMoveFlag(bool isMove)
     {
         isMoving = isMove;
-        Debug.Log(isMoving);
+    }
+
+    public bool GetMoveFlag()
+    {
+        return isMoving;
     }
 }
