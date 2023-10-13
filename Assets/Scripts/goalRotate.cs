@@ -13,7 +13,7 @@ public class goalRotate : MonoBehaviour
     void Update()
     {
         if (isRotating)
-        {
+        { 
             if (!isTop)
             {
                 step = moveSpeed * rotSpeed * Time.deltaTime;

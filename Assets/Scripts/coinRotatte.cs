@@ -17,15 +17,11 @@ public class coinRotatte : MonoBehaviour
     }
     void Update()
     {
-        // “Á’è‚ÌğŒ‚ğ–‚½‚µ‚½ê‡‚Éã¸‚Æ‰ñ“]‚ğŠJn
-        if (exit.GetMove())
-        {
-            // ã¸
-            transform.position += (Vector3.up * riseSpeed * Time.deltaTime);
-            // z²ü‚è‚Ì‰ñ“]
-            transform.Rotate(new Vector3(1.0f, 0.0f, 0.0f) * moveSpeed * rotationSpeed * Time.deltaTime);
+        // ã¸
+        transform.position += (Vector3.up * riseSpeed * Time.deltaTime);
+        // z²ü‚è‚Ì‰ñ“]
+        transform.Rotate(new Vector3(1.0f, 0.0f, 0.0f) * moveSpeed * rotationSpeed * Time.deltaTime);
 
-            Destroy(gameObject, 1.5f);
-        }
+        Destroy(gameObject, 1.5f);
     }
 }

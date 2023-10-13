@@ -8,6 +8,7 @@ public class collisionCar : MonoBehaviour
     carMove car;
     exitMove exit;
     goalRotate goal;
+    bool isFor;
 
     private void Start()
     {
@@ -18,7 +19,9 @@ public class collisionCar : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         if (other.transform.CompareTag("Car"))
+        {
             exit = other.GetComponent<exitMove>();
+        }
     }
 
     private void OnTriggerStay(Collider other)
@@ -37,6 +40,7 @@ public class collisionCar : MonoBehaviour
             goal.SetTop(false);
         }
     }
+
     private void OnTriggerExit(Collider other)
     {
         if (other.transform.CompareTag("Car") && exit.GetMove())

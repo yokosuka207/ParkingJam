@@ -5,35 +5,26 @@ using UnityEngine.UI;
 
 public class emotionRotation : MonoBehaviour
 {
-    [SerializeField] private Transform targetObject; // 3DオブジェクトのTransform
     public RawImage imageToMove; // 2D画像
+    createEmotion colCar;
 
-    goalRotate goal;
+     // 生成元オブジェクトへの参照
 
-    private void Start()
+    public void SetCreatorObject(createEmotion car)
     {
-        goal = GameObject.Find("Goal").GetComponent<goalRotate>();
+        colCar = car;
     }
 
     void Update()
     {
-        Debug.Log(imageToMove);
-
-        if (targetObject != null && imageToMove != null)
+        if (imageToMove != null && colCar != null)
         {
             // 3Dオブジェクトの位置を取得し、それを2D画像の位置に反映
-            if (goal.GetRotating())
-            {
-                imageToMove.enabled = true;
-                Vector3 worldPosition = targetObject.position;
-                Vector3 screenPosition = Camera.main.WorldToScreenPoint(worldPosition);
-                screenPosition.y += 10f;
-                imageToMove.transform.position = screenPosition;
-            }
-            else
-            {
-                imageToMove.enabled = false;
-            }
+            Vector3 worldPosition = colCar.transform.position;
+            Vector3 screenPosition = Camera.main.WorldToScreenPoint(worldPosition);
+            imageToMove.transform.position = screenPosition;
+
+            Destroy(gameObject, 0.2f);
         }
     }
 }
